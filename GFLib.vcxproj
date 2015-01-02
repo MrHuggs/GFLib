@@ -77,6 +77,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GFLib.cpp" />
+    <ClCompile Include="GFUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GFLib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

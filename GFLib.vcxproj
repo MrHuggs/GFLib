@@ -76,11 +76,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GF2Extension.cpp" />
     <ClCompile Include="GFLib.cpp" />
     <ClCompile Include="GFUtils.cpp" />
+    <ClCompile Include="SubField.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GF2Extension.h" />
     <ClInclude Include="GFLib.h" />
+    <ClInclude Include="SubField.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

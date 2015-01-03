@@ -15,7 +15,7 @@ public:
 	// Comlplete the field based on the current members:
 	void generateField();
 
-	void generateMissingElements(vector<uint> &missing);
+	void generateMissingElements(unordered_set<uint>  &missing);
 	int size() const { return setMembers.size(); }
 
 	void dump();

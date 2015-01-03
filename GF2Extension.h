@@ -27,6 +27,7 @@ public:
 	uint add(uint a, uint b);
 	uint subtract(uint a, uint b);
 	uint multiply(uint a, uint b);
+	uint power(uint a, int exponent);
 	DivRes divide(uint dividend, uint divisor);
 
 	string makeMultiplicationTable();

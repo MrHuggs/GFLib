@@ -28,9 +28,20 @@ int main(int argc, char* argv[])
 		ext.testClass();
 
 		cout << "GF(16) with poly " << ext.format(ext.poly()) << "\n";
-		//cout << ext.makeMultiplicationTable();
+		cout << ext.makeMultiplicationTable();
 
-		for (uint i = 2; i < 16; i++)
+		for (uint i = 0; i < 16; i++)
+		{
+			auto p = ext.power(i, 4);
+			cout << i << " --> " << p;
+
+			if (p == i)
+				cout << "<=== " << ext.format(p);
+			
+			cout << "\n";
+		}
+		//for (uint i = 2; i < 16; i++)
+		uint i = 12;
 		{
 			Subfield sf(&ext);
 			sf.addElement(i);

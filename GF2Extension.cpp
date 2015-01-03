@@ -42,21 +42,36 @@ uint GF2Extension::multiply(uint a, uint b)
 	return r.remainder;
 }
 ///////////////////////////////////////////////////////////////////////////////
-GF2Extension::DivRes GF2Extension::divide(uint dividend, uint divisor)
+uint GF2Extension::power(uint a, int exponent)
 {
-	assert(dividend < nPolynomial);	// Show already be reduced.
+	assert(exponent > 0);
+	auto r = 1;
+	for (int i = 0; i < exponent; i++)
+		r = multiply(r, a);
+
+	return r;
+}
+///////////////////////////////////////////////////////////////////////////////
+GF2Extension::DivRes GF2Extension::divide(uint _dividend, uint divisor)
+{
+	assert(_dividend < nPolynomial);	// Show already be reduced.
 	assert(divisor < nPolynomial);
 
-	if (dividend < divisor)
-	{
-		dividend = _add(dividend, nPolynomial);
-	}
+	uint dividend;
+	if (_dividend < divisor)
+		dividend = _add(_dividend, nPolynomial);
+	else
+		dividend = _dividend;
 
 
 	auto r = _divide(dividend, divisor);
 
+#ifndef NDEBUG
 	assert(r.quotient < nPolynomial);
 	assert(r.remainder < nPolynomial);
+	auto t = add(multiply(divisor, r.quotient), r.remainder);
+	assert(t == _dividend);
+#endif
 
 	return r;
 }

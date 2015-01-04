@@ -7,6 +7,7 @@
 int main(int argc, char* argv[])
 {
 	TestConvert();
+	
 /*	{
 		GF2Extension ext(7);
 		ext.testClass();
@@ -14,15 +15,16 @@ int main(int argc, char* argv[])
 		cout << "GF(4) with poly " << ext.format(ext.poly()) << "\n";
 		cout << ext.makeMultiplicationTable();
 	}
-
+	*/
 	{
 		GF2Extension ext(13);
 		ext.testClass();
 
 		cout << "GF(8) with poly " << ext.format(ext.poly()) << "\n";
 		cout << ext.makeMultiplicationTable();
+		cout << ext.makeGeneratorList();
 	}
-	*/
+	/*
 	{
 		GF2Extension ext(31);
 		ext.testClass();
@@ -30,16 +32,14 @@ int main(int argc, char* argv[])
 		cout << "GF(16) with poly " << ext.format(ext.poly()) << "\n";
 		cout << ext.makeMultiplicationTable();
 
-		for (uint i = 0; i < 16; i++)
-		{
-			auto p = ext.power(i, 4);
-			cout << i << " --> " << p;
+		cout << ext.format(1) << " / " << ext.format(13) << " = ";
+		auto q = ext.divide(1, 13);
 
-			if (p == i)
-				cout << "<=== " << ext.format(p);
-			
-			cout << "\n";
-		}
+		cout << ext.format(q) << "\n";
+
+
+
+#if 1
 		//for (uint i = 2; i < 16; i++)
 		uint i = 12;
 		{
@@ -50,7 +50,9 @@ int main(int argc, char* argv[])
 			if (sf.size() < 16)
 				sf.dump();
 		}
-	}
+#endif
+		
+	}*/
 
 
 	return 0;

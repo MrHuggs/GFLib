@@ -2,17 +2,104 @@
 
 #include "GFLib.h"
 #include "GF2Extension.h"
+#include <memory>
 
 ///////////////////////////////////////////////////////////////////////////////
-GF2Extension::GF2Extension(uint poly)
+GF2Extension::GF2Extension()
 {
-	assert(CountBits(poly) & 1);	// Polynomial has to be irreducible over GF(2).
-	nPolynomial = poly;
-
-	nIndex = HighBit(poly);			// Extension index is the degree of the irreducible poly.
+	nPolynomial = 0;
+	nIndex = 0;
 }
 ///////////////////////////////////////////////////////////////////////////////
-uint GF2Extension::add(uint a, uint b)
+GF2Extension::GF2Extension(uint poly) : GF2Extension()
+{
+	auto b = create(poly);
+	assert(b);
+}
+///////////////////////////////////////////////////////////////////////////////
+bool GF2Extension::create(uint poly)
+{
+	assert(nPolynomial == 0); // Shouldn't be initialized twice.
+
+	// Two simple tests for reducibility:
+	if (!(CountBits(poly) & 1))
+		return false;
+	if (!(poly & 1))
+		return false;
+
+	nPolynomial = poly;				// Need to call clear() if we fail after this point.
+	nIndex = HighBit(poly);			// Extension index is the degree of the irreducible poly.
+
+	reciprocalArray.resize(size());
+	reciprocalArray[0] = 1;
+
+	/*
+	unique_ptr<uint[]> power_array(new uint[size()]);
+	uint generator = size() - 1;
+	power_array[0] = 1;
+	power_array[1] = generator;
+
+	for (uint i = 2;; i++)
+	{
+		assert(i < (uint) size());
+		auto np = multiply(generator, power_array[i - 1]);
+
+		power_array[i] = np;
+		cout << i << "  " << np << "\n";
+
+		if (power_array[i] == 1)
+		{
+			if (i < generator)
+			{
+				clear();
+				return false;
+			}
+			break;
+		}
+	}
+
+
+	for (int i = 1; i < size(); i++)
+	{
+		uint val = power_array[i];
+		uint inv = power_array[generator - i];
+		reciprocalArray[val-1] = inv;
+
+#ifndef NDEBUG
+		GCDRes res = extendedEucliedean(val, nPolynomial);
+		assert(res.afactor == inv);
+#endif
+	}*/
+
+	for (uint i = 1; i < (uint) size(); i++)
+	{
+		GCDRes res = extendedEucliedean(i, nPolynomial);
+		if (res.gcd > 1)
+		{
+			clear();
+			return false;
+		}
+		reciprocalArray[(int)(i - 1)] = res.afactor;
+	}
+
+#ifndef NDEBUG
+	for (int i = 1; i < size(); i++)
+	{
+		assert(multiply(i, reciprocal(i)) == 1);
+	}
+#endif
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void GF2Extension::clear()
+{
+	nPolynomial = 0;
+	nIndex = 0;
+	reciprocalArray.clear();
+}
+///////////////////////////////////////////////////////////////////////////////
+uint GF2Extension::add(uint a, uint b) const
 {
 	assert(a < nPolynomial);	// Show already be reduced.
 	assert(b < nPolynomial);
@@ -22,7 +109,7 @@ uint GF2Extension::add(uint a, uint b)
 	return r.remainder;
 }
 ///////////////////////////////////////////////////////////////////////////////
-uint GF2Extension::subtract(uint a, uint b)
+uint GF2Extension::subtract(uint a, uint b) const
 {
 	assert(a < nPolynomial);	// Show already be reduced.
 	assert(b < nPolynomial);
@@ -32,7 +119,7 @@ uint GF2Extension::subtract(uint a, uint b)
 	return r.remainder;
 }
 ///////////////////////////////////////////////////////////////////////////////
-uint GF2Extension::multiply(uint a, uint b)
+uint GF2Extension::multiply(uint a, uint b) const
 {
 	assert(a < nPolynomial);	// Show already be reduced.
 	assert(b < nPolynomial);
@@ -42,47 +129,80 @@ uint GF2Extension::multiply(uint a, uint b)
 	return r.remainder;
 }
 ///////////////////////////////////////////////////////////////////////////////
-uint GF2Extension::power(uint a, int exponent)
+uint GF2Extension::power(uint a, int exponent) const
 {
 	assert(exponent > 0);
-	auto r = 1;
+	uint r = 1;
 	for (int i = 0; i < exponent; i++)
 		r = multiply(r, a);
 
 	return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
-GF2Extension::DivRes GF2Extension::divide(uint _dividend, uint divisor)
+uint GF2Extension::reciprocal(uint a) const
 {
-	assert(_dividend < nPolynomial);	// Show already be reduced.
-	assert(divisor < nPolynomial);
+	assert(a != 0);
 
-	uint dividend;
-	if (_dividend < divisor)
-		dividend = _add(_dividend, nPolynomial);
+	/*
+	auto cur = reciprocalMap.find(a);
+
+	uint i;
+	if (cur == reciprocalMap.end())
+	{
+		for (i = 2;; i++)
+		{
+			//assert(i < (uint)size());
+			if (i >= (uint)size())
+				cout << "****";
+
+			if (i == a)
+				continue;
+			if (multiply(i, a) == 1)
+				break;
+		}
+		reciprocalMap.insert(pair<uint, uint>(a, i));
+	}
 	else
-		dividend = _dividend;
+	{
+		i = cur->second;
+	}*/
+
+	return reciprocalArray[(int)(a - 1)];
+}
+///////////////////////////////////////////////////////////////////////////////
+uint GF2Extension::divide(uint dividend, uint divisor) const
+{
+	assert(dividend < nPolynomial);	// Show already be reduced.
+	assert(divisor < nPolynomial);
+	assert(divisor != 0);
 
 
-	auto r = _divide(dividend, divisor);
+	uint i = reciprocal(divisor);
 
-#ifndef NDEBUG
-	assert(r.quotient < nPolynomial);
-	assert(r.remainder < nPolynomial);
-	auto t = add(multiply(divisor, r.quotient), r.remainder);
-	assert(t == _dividend);
-#endif
-
+	auto r = _multiply(dividend, i);
 	return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
-string GF2Extension::makeMultiplicationTable()
+int GF2Extension::order(uint a) const
+{
+	assert(a != 0);
+	assert(a < nPolynomial);
+	int i = 1;
+	uint cur = a;
+	while (cur != 1)
+	{
+		cur = multiply(a, cur);
+		i++;
+	}
+	return i;
+}
+///////////////////////////////////////////////////////////////////////////////
+string GF2Extension::makeMultiplicationTable() const
 {
 	stringstream ss;
 
-
 	ss << "\t|";
-	uint nelements = ((uint)1) << nIndex;
+	uint nelements = (uint) size();
 	for (uint i = 0; i < nelements; i++)
 	{
 		ss << "\t" << i;
@@ -106,6 +226,26 @@ string GF2Extension::makeMultiplicationTable()
 		}
 		ss << "\n";
 	}
+
+	return ss.str();
+}
+///////////////////////////////////////////////////////////////////////////////
+string GF2Extension::makeGeneratorList() const
+{
+	stringstream ss;
+	int mgsize = size() - 1;	// Size of the multiplicative group.
+
+	int cnt = 0;
+	for (uint i = 1; i < (uint) size(); i++)
+	{
+		if (order(i) == mgsize)
+		{
+			if (cnt) ss << ", ";
+			cnt++;
+			ss << i;
+		}
+	}
+	ss << "\nTotal of " << cnt << " generators.";
 
 	return ss.str();
 }
@@ -152,10 +292,10 @@ GF2Extension::DivRes GF2Extension::_divide(uint dividend, uint divisor)
 	{
 		assert(i >= 0);
 
-		if (res.remainder & (1 << i))
+		if (res.remainder & ((uint)1 << i))
 		{
 			int shift = i - sb;
-			res.quotient |= (1 << shift);
+			res.quotient |= ((uint) 1 << shift);
 			res.remainder = _subtract(res.remainder, divisor << shift);
 
 		}
@@ -163,6 +303,38 @@ GF2Extension::DivRes GF2Extension::_divide(uint dividend, uint divisor)
 			break;
 
 	}
+
+	return res;
+}
+///////////////////////////////////////////////////////////////////////////////
+GF2Extension::GCDRes GF2Extension::extendedEucliedean(uint a, uint b)
+{
+	assert(a != 0 && b != 0);
+	uint s = 0, old_s = 1;
+	uint t = 1, old_t = 0;
+	uint r = b, old_r = a;
+
+	uint prov, quotient;
+#define PA(r, old_r, quotient)			\
+		prov = r;						\
+		r = _subtract(old_r, _multiply(quotient, prov));	\
+		old_r = prov;
+
+	while (r != 0)
+	{
+		quotient = _divide(old_r, r).quotient;
+		PA(r, old_r, quotient)
+		PA(s, old_s, quotient)
+		PA(t, old_t, quotient)
+	}
+#undef PA
+
+	GCDRes res;
+	res.afactor = old_s;
+	res.bfactor = old_t;
+	res.gcd = old_r;
+
+	assert(_add(_multiply(res.afactor, a), _multiply(res.bfactor, b)) == res.gcd);
 
 	return res;
 }
@@ -176,7 +348,7 @@ string GF2Extension::format(uint val)
 	bool leading = true;
 	for (int i = maxBits - 1; i >= 0; i--)
 	{
-		if (val & (1 << i))
+		if (val & ((uint)1 << i))
 		{
 			if (!leading)
 				ss << " + ";
@@ -197,7 +369,7 @@ string GF2Extension::format(uint val)
 	return ss.str();
 }
 ///////////////////////////////////////////////////////////////////////////////
-void GF2Extension::dump(uint val)
+void GF2Extension::dumpPoly(uint val)
 {
 	cout << format(val);
 }
@@ -228,6 +400,10 @@ void GF2Extension::testClass()
 	prod = ext.multiply(StrToUint("10"), StrToUint("10"));
 	assert(prod == StrToUint("11"));
 
+	GF2Extension ext8(13);
+	GF2Extension ext16(31);
+	GF2Extension ext32(61);
+	GF2Extension ext64(87);
 }
 ///////////////////////////////////////////////////////////////////////////////
 

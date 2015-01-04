@@ -66,9 +66,9 @@ void Subfield::generateMissingElements(unordered_set<uint>  &missing)
 	{
 		if (*it != 0)
 		{
-			auto r = pMaster->divide(1, *it);
-			if (setMembers.count(r.quotient) == 0)
-				missing.emplace(r.quotient);
+			auto q = pMaster->divide(1, *it);
+			if (setMembers.count(q) == 0)
+				missing.emplace(q);
 
 			auto n = pMaster->subtract(0, *it);
 			if (setMembers.count(n) == 0)

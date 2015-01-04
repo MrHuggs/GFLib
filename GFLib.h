@@ -6,7 +6,7 @@
 #include <cassert>
 using namespace std;
 
-using uint = unsigned int;
+using uint = unsigned _int64;
 
 // Utilities
 int HighBit(uint val);

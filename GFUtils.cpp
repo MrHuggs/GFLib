@@ -8,7 +8,7 @@ int HighBit(uint val)
 	int i;
 	for (i = sizeof(uint) * 8 - 1; i >= 0; i--)
 	{
-		if (val & (1 << i))
+		if (val & ((uint) 1 << i))
 			break;
 	}
 	return i;
@@ -38,7 +38,7 @@ string UintToStr(uint val)
 	i--;
 	while (i >= 0)
 	{
-		char c = (val & (1 << i)) ? '1' : '0';
+		char c = (val & ((uint) 1 << i)) ? '1' : '0';
 		ss << c;
 		i--;
 	}

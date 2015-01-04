@@ -21,6 +21,7 @@ public:
 
 	GF2Extension();
 	GF2Extension(uint poly);
+	GF2Extension(const char *ppoly); //poly def in binary.
 
 	bool create(uint poly);
 	void clear();
@@ -40,6 +41,7 @@ public:
 
 	string makeMultiplicationTable() const;
 	string makeGeneratorList() const;
+	string makeGaloisData();
 
 	// Static methods.
 	static uint _add(uint a, uint b);

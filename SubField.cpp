@@ -27,17 +27,19 @@ void Subfield::generateField()
 	unordered_set<uint> missing;
 	int ipass = 0;
 
-#if 1
+#if 0
 #define dumpstream cout
+#define dump_out() dump()
 #else
 	ofstream dumpstream;
+#define dump_out();
 #endif
 
 
 	for (;;)
 	{
 		dumpstream << "Generate field pass " << ipass++ << " starting with elements:\n";
-		dump();
+		dump_out();
 
 		generateMissingElements(missing);
 
@@ -87,15 +89,32 @@ void Subfield::generateMissingElements(unordered_set<uint>  &missing)
 	}
 
 }
-
 ///////////////////////////////////////////////////////////////////////////////
-void Subfield::dump()
+bool Subfield :: isIdentical(const Subfield *pother) const
 {
-	cout << "Subfield with " << setMembers.size() << " elememts.\n";
+	if (setMembers.size() != pother->setMembers.size())
+		return false;
 
 	for (auto v : setMembers)
 	{
-		string str = pMaster->format(v);
-		cout << "\t" << str << "\n";
+		if (pother->setMembers.count(v) == 0)
+			return false;
 	}
+	return true;
+}
+///////////////////////////////////////////////////////////////////////////////
+void Subfield::dump()
+{
+	cout << "Subfield with " << setMembers.size() << " elememts:\n   ";
+
+	int n = 0;
+	for (auto v : setMembers)
+	{
+		if (n++)
+			cout << ", ";
+		//string str = pMaster->format(v);
+		//cout << "\t" << str << "\n";
+		cout << v;
+	}
+	cout << "\n";
 }

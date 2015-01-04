@@ -2,6 +2,10 @@
 
 #include <string>
 #include <iostream>     // std::cout
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include <sstream>      // std::stringstream
 #include <cassert>
 using namespace std;

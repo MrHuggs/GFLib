@@ -18,6 +18,8 @@ public:
 	void generateMissingElements(unordered_set<uint>  &missing);
 	int size() const { return setMembers.size(); }
 
+	bool isIdentical(const Subfield *pother) const;
+
 	void dump();
 
 };

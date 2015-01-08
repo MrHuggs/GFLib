@@ -7,7 +7,10 @@
 #include <crtdbg.h>
 
 #include <sstream>      // std::stringstream
-#include <cassert>
+
+#undef assert
+#define assert(x) { if (!(x)) { _asm int 3 } }
+
 using namespace std;
 
 using uint = unsigned _int64;

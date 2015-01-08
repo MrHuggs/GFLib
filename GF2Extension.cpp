@@ -203,6 +203,30 @@ int GF2Extension::order(uint a) const
 	return i;
 }
 ///////////////////////////////////////////////////////////////////////////////
+uint GF2Extension::normFromGalois(uint a, int galois_gen_power) const
+{
+	// Given the power of the generator of the galois group, calculate the
+	// field norm over the corresponding fixed field.
+
+	uint res = 1;
+	cout << "Galois power " << galois_gen_power << " on " << a << "\n";
+	int p = galois_gen_power;
+	do
+	{
+		auto v = power(a, p);
+		cout << "   " << a << "^" << p  <<"=" << v;
+
+		res = multiply(res, v);
+
+		p = p * p;
+	} while (p <= size() + 1);
+
+	cout << "  product: " << res << "\n";
+	
+
+	return res;
+}
+///////////////////////////////////////////////////////////////////////////////
 string GF2Extension::makeMultiplicationTable() const
 {
 	stringstream ss;

@@ -38,6 +38,8 @@ public:
 	uint divide(uint dividend, uint divisor) const;
 	int order(uint a) const;	// Return the order of a alement - lowest  so that a^n = 1
 
+	uint normFromGalois(uint, int galois_gen_power) const;
+
 
 	string makeMultiplicationTable() const;
 	string makeGeneratorList() const;

@@ -6,21 +6,72 @@
 #include <utility>
 
 ///////////////////////////////////////////////////////////////////////////////
+
+using int64 = long long;
+static_assert(sizeof(int64) == 8, "int64 size is wrong");
+
+int64 EuclideanGCD(int64 a, int64 b)
+{
+	// Note that this works even if b > a, as the first iteration will just end
+	// up swapping the two.
+	while (b != 0)
+	{
+		auto t = a % b;
+		a = b;
+		b = t;
+	}
+	return a;
+}
+
 struct GCDRes
 {
-	int afactor;
-	int bfactor;
-	int gcd;
+	int64 afactor;
+	int64 bfactor;
+	int64 gcd;
+
+	bool operator ==(const GCDRes &other)
+	{
+		return afactor == other.afactor && bfactor == other.bfactor && gcd == other.gcd;
+	}
 };
 
-GCDRes ExtendedEucliedean(int a, int b)
+GCDRes RecExtendedEuclidean(int64 a, int64 b)
+{
+	GCDRes res;
+
+	if (b == 0)
+	{
+		res.afactor = 1;
+		res.bfactor = 0;
+		res.gcd = a;
+		return res;
+	}
+
+	// Note that if b > a, we will just end up swapping them and recursing.
+
+	auto q = a / b;
+	auto aprime = a - q * b;
+
+	GCDRes temp = RecExtendedEuclidean(b, aprime);
+
+	res.gcd = temp.gcd;
+	res.afactor = temp.bfactor;
+	res.bfactor = temp.afactor - temp.bfactor * q;
+	
+	assert(a * res.afactor + b * res.bfactor == res.gcd);
+
+	cout << "ExtendedEuclidean for " << a << " & " << b << " returns " << res.afactor << " , " << res.bfactor << " - " << res.gcd << "\n";
+	return res;
+}
+
+GCDRes ExtendedEucliedean(int64 a, int64 b)
 {
 	assert(a != 0 && b != 0);
-	int s = 0, old_s = 1;
-	int t = 1, old_t = 0;
-	int r = b, old_r = a;
+	int64 s = 0, old_s = 1;
+	int64 t = 1, old_t = 0;
+	int64 r = b, old_r = a;
 
-	int prov, quotient;
+	int64 prov, quotient;
 #define PA(r, old_r, quotient)			\
 		prov = r;						\
 		r = old_r - quotient * prov;	\
@@ -42,25 +93,28 @@ GCDRes ExtendedEucliedean(int a, int b)
 
 	assert(res.afactor * a + res.bfactor * b == res.gcd);
 
+	GCDRes eres = RecExtendedEuclidean(a, b);
+	assert(res == eres);
+
 	return res;
 }
-void AbelienianDecomp(const int val, int ndim, const int *sizes, int *pres)
+void AbelienianDecomp(const int64 val, int64 ndim, const int64 *sizes, int64 *pres)
 {
-	for (int i = 0; i < ndim; i++)
+	for (int64 i = 0; i < ndim; i++)
 		pres[i] = val % sizes[i];
 
 	return;
 }
 
-int _AbelienianReverse(int s1, int s2, int m1, int m2)
+int64 _AbelienianReverse(int64 s1, int64 s2, int64 m1, int64 m2)
 {
 
-	int del = m2 - m1;
+	int64 del = m2 - m1;
 
 	auto r = ExtendedEucliedean(s1, s2);
 	assert(r.gcd == 1);
 
-	int res;
+	int64 res;
 	res = r.afactor * s1 * del + m1;
 	
 	auto p = s1 * s2;
@@ -74,13 +128,13 @@ int _AbelienianReverse(int s1, int s2, int m1, int m2)
 	return res;
 }
 
-int AbelienianReverse(int ndim, const int *powers, const int *mods)
+int64 AbelienianReverse(int64 ndim, const int64 *powers, const int64 *mods)
 {
 	assert(ndim >= 2);
-	int cp = powers[0];
-	int cm = mods[0];
+	int64 cp = powers[0];
+	int64 cm = mods[0];
 
-	for (int i = 1; i < ndim; i++)
+	for (int64 i = 1; i < ndim; i++)
 	{
 		cm = _AbelienianReverse(cp, powers[i], cm, mods[i]);
 		cp *= powers[i];
@@ -88,32 +142,43 @@ int AbelienianReverse(int ndim, const int *powers, const int *mods)
 	return cm;
 }
 
-void TestDecomp(const int *powers)
+void TestDecomp(const int64 *powers)
 {
-	int prod = 1;
-	int np;
+	int64 prod = 1;
+	int64 np;
 	for (np = 0; powers[np]; np++)
 	{
 		prod *= powers[np];
 	}
+	assert(prod < 10000000000 );	// Amything larger will take a very long time.
 
-	vector<int> mods;
-	mods.resize(np);
-	for (int i = 0; i < prod; i++)
+	vector<int64> mods;
+	mods.resize((unsigned int) prod);
+	for (int64 i = 0; i < prod; i++)
 	{
 		AbelienianDecomp(i, np, powers, mods.data());
-		int rev = AbelienianReverse(np, powers, mods.data());
+		int64 rev = AbelienianReverse(np, powers, mods.data());
 		assert(i == rev);
 	}
 }
 
 void GCDExp()
 {
-	int pi[] = { 8, 9, 5, 0 };
+	GCDRes a = RecExtendedEuclidean(27 * 2 * 3, 83 * 83 * 3);
+	GCDRes ap = ExtendedEucliedean(27 * 2 * 3, 83 * 83 * 3);
+	assert(a == ap);
+
+
+	int64 r, r1;
+	r = EuclideanGCD(83 * 83 * 3, 27 * 2 * 3);
+	r1 = EuclideanGCD(27 * 2 * 3, 83 * 83 * 3);
+	assert(r == r1);
+
+	int64 pi[] = { 8, 9, 5, 0 };
 	TestDecomp(pi);
 
-	//int pi1[] = { 64, 83 * 83, 27, 5, 0 };
-	//TestDecomp(pi1);
+	int64 pi1[] = { 64, 83 * 83, 27, 5, 0 };
+	TestDecomp(pi1);
 
 
 	cout << _AbelienianReverse(4, 5, 3, 4);

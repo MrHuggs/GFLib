@@ -66,6 +66,41 @@ GCDRes RecExtendedEuclidean(int64 a, int64 b)
 
 GCDRes ExtendedEucliedean(int64 a, int64 b)
 {
+	struct PartialEE { int64 s, t, r; };
+
+	PartialEE prev, cur, next;
+
+	prev.s = 1;
+	prev.t = 0;
+	prev.r = a;
+
+	cur.s = 0;
+	cur.t = 1;
+	cur.r = b;
+
+	while (cur.r != 0)
+	{
+		auto q = prev.r / cur.r;
+
+		next.s = prev.s - cur.s * q;
+		next.t = prev.t - cur.t * q;
+		next.r = prev.r - cur.r * q;
+
+		prev = cur;
+		cur = next;
+	}
+
+	GCDRes res;
+	res.afactor = prev.s;
+	res.bfactor = prev.t;
+	res.gcd = prev.r;
+
+	assert(res.afactor * a + res.bfactor * b == res.gcd);
+	return res;
+}
+
+GCDRes _ExtendedEucliedean(int64 a, int64 b)
+{
 	assert(a != 0 && b != 0);
 	int64 s = 0, old_s = 1;
 	int64 t = 1, old_t = 0;

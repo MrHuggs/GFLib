@@ -151,10 +151,17 @@ int64 _AbelienianReverse(int64 s1, int64 s2, int64 m1, int64 m2)
 
 	int64 res;
 	res = r.afactor * s1 * del + m1;
-	
+
 	auto p = s1 * s2;
 
-	res = (res + p * s2) % p;
+	if (res < 0)
+	{
+		auto t = res % p;
+		res = t ? p + t : t;
+	}
+	else
+		res = res % p;
+
 	
 	assert(res >= 0 && res < s1 * s2);
 	assert(res % s1 == m1);

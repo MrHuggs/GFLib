@@ -49,8 +49,8 @@ void AbelienianDecomp(const int64 val, int64 ndim, const int64 *sizes, int64 *pr
 int64 AbelienianReverse(int64 ndim, const int64 *powers, const int64 *mods);
 
 
-void TestGFUtils()
 #ifdef NDEBUG
-{}
+inline void TestGFUtils() {}
+#else
+void TestGFUtils();
 #endif
-;
